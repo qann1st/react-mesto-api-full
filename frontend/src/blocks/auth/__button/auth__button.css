@@ -1,0 +1,11 @@
+.auth__button {
+  margin: auto 0 0 0;
+}
+
+@media screen and (max-width: 767px) {
+  .auth__button {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+  }
+}

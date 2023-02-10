@@ -1,0 +1,32 @@
+.places {
+  margin: 0;
+  padding: 50px 0 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 17px;
+  row-gap: 20px;
+  color: black;
+  animation: anim 0.5s linear;
+}
+
+@media screen and (max-width: 1023px) {
+  .places {
+    grid-template-columns: repeat(2, 1fr);
+    padding-top: 36px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .places {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes anim {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

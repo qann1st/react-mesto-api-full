@@ -1,0 +1,11 @@
+.header__menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 0 ;
+  height: 0;
+  border-bottom: none;
+  overflow: hidden;
+  transition: all 0.1s linear;
+}

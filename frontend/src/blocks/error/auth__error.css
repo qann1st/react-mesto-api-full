@@ -1,0 +1,10 @@
+.error {
+  display: block;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 12px;
+  color: #FF0000;
+  opacity: 0;
+  min-height: 24px;
+  transition: opacity 0.3s linear;
+}

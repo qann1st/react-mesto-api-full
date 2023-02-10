@@ -1,0 +1,9 @@
+.button_type_white {
+  background: #fff;
+  color: #000;
+  border: none;
+}
+
+.button_type_white:not(:disabled):hover {
+  opacity: 0.85;
+}

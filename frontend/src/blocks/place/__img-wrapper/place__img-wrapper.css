@@ -1,0 +1,5 @@
+.place__img-wrapper {
+  height: 0;
+  padding-bottom: 100%;
+  position: relative;
+}

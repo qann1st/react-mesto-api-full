@@ -1,0 +1,14 @@
+.place__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  object-fit: cover;
+  transition: all ease-in 0.1s;
+  position: absolute;
+}
+
+.place__img:hover {
+  opacity: 0.8;
+}

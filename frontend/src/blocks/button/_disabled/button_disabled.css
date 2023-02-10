@@ -1,0 +1,6 @@
+.button_disabled {
+  cursor: not-allowed;
+  background-color: white;
+  color: black;
+  opacity: 0.2;
+}
