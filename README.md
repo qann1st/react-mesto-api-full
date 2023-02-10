@@ -4,6 +4,6 @@
 
 https://github.com/Allxy/react-mesto-api-full
 
-`IP` 158.160.25.177
-`Frontend` https://qann1st.site
-`Backend` https://api.qann1st.site
+`IP`  158.160.25.177
+`Frontend`  https://qann1st.site
+`Backend`  https://api.qann1st.site
