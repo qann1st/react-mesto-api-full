@@ -1,137 +1,125 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const BadRequestError = require('../errors/BadRequestError');
+const ConflictError = require('../errors/ConflictError');
+const NotFoundError = require('../errors/NotFoundErrors');
 const User = require('../models/user');
 
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => {
-      res.send(users);
-    })
-    .catch(() => {
-      res.status(404).send({ message: 'Список пользователей пуст' });
-    });
-};
-
-module.exports.getUser = (req, res) => {
-  User.findById(req.params.id)
-    .then((user) => {
-      if (user.id === req.params.id) res.send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'ID пользователя некорректен' });
-      } else {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      }
-    });
-};
-
-module.exports.getNowUser = (req, res) => {
-  User.findById(req.user._id)
-    .then((user) => {
-      if (user === null) {
-        res.status(404).send({ message: 'Такого пользователя нет' });
-      } else {
-        res.send(user);
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'ID пользователя некорректен' });
-      } else {
-        res.status(404).send({ message: 'Пользователь не найден' });
-      }
-    });
-};
-
-module.exports.createUser = async (req, res) => {
-  const { name, about, avatar, email, password = null } = req.body;
-  email.toLowerCase();
-
-  if (password === '' || password === undefined || password === null) {
-    res.status(400).send({ message: 'Введите пароль' });
-    throw new Error();
+module.exports.getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (err) {
+    next(err);
   }
+};
 
-  User.findOne({ email }).then((user) => {
-    if (user !== null) {
-      res.status(409).send({ message: 'Пользователь уже существует' });
+module.exports.getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (user === null) throw new NotFoundError('Пользователь не найден');
+    res.send(user);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Некорректный ID пользователя'));
+    } else {
+      next(err);
     }
-  });
+  }
+};
 
-  bcrypt.hash(password, 10).then((hash) => {
-    User.create({
+module.exports.getNowUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (user === null) {
+      throw new NotFoundError('Такого пользователя не существует');
+    }
+    res.send(user);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      next(new BadRequestError('ID пользователя некорректен'));
+    } else {
+      next(err);
+    }
+  }
+};
+
+module.exports.createUser = async (req, res, next) => {
+  try {
+    let { name, about, avatar, email, password } = await req.body;
+    email.toLowerCase();
+
+    const user = await User.findOne({ email });
+    if (user !== null) {
+      throw new ConflictError('Пользователь уже существует');
+    }
+
+    password = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
       name,
       about,
       avatar,
       email,
-      password: hash,
-    })
-      .then((user) => {
-        const account = user.toObject();
-        delete account.password;
-        res.send(account);
-      })
-      .catch(() => {
-        res.status(400).send({ message: 'Пользователь уже существует' });
-      });
-  });
+      password,
+    });
+
+    res.status(201).send(newUser);
+  } catch (err) {
+    next(err);
+  }
 };
 
-module.exports.editUser = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, req.body, {
-    new: true,
-    runValidators: true,
-  })
-    .then((editedUser) => {
-      res.send(editedUser);
-    })
-    .catch(() => {
-      res.status(400).send({ message: 'Не удалось изменить пользователя' });
+module.exports.editUser = async (req, res, next) => {
+  try {
+    const editedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
+      new: true,
+      runValidators: true,
     });
+    res.send(editedUser);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Не удалось изменить пользователя'));
+    } else {
+      next(err);
+    }
+  }
 };
 
-module.exports.editAvatar = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, req.body, {
-    new: true,
-    runValidators: true,
-  })
-    .then((editedAvatar) => {
-      res.send(editedAvatar);
-    })
-    .catch(() => {
-      res.status(400).send({ message: 'Не удалось изменить аватар' });
+module.exports.editAvatar = async (req, res, next) => {
+  try {
+    const editedAvatar = await User.findByIdAndUpdate(req.user._id, req.body, {
+      new: true,
+      runValidators: true,
     });
+    res.send(editedAvatar);
+  } catch (err) {
+    next(new BadRequestError('Не удалось изменить аватар'));
+  }
 };
 
-module.exports.login = (req, res) => {
-  const { email, password } = req.body;
-  let token;
+module.exports.login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
-  User.findOne({ email })
-    .select('+password')
-    .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильная почта или пароль'));
-      }
+    const findUser = await User.findOne({ email }).select('+password');
+    if (!findUser) {
+      return Promise.reject(new Error('Неправильная почта или пароль'));
+    }
 
-      token = jwt.sign({ _id: user._id }, 'secret-key');
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        return Promise.reject(new Error('Неправильная почта или пароль'));
-      }
+    const token = jwt.sign({ _id: findUser._id }, process.env.JWT_SECRET);
+    const matched = await bcrypt.compare(password, findUser.password);
+    if (!matched) {
+      return Promise.reject(new Error('Неправильная почта или пароль'));
+    }
 
-      res.send({
-        token,
-      });
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректно введены данные' });
-      } else {
-        res.status(401).send({ message: 'Не удалось авторизоваться' });
-      }
+    res.send({
+      token,
     });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: 'Некорректно введены данные' });
+    } else {
+      next(err);
+    }
+  }
 };

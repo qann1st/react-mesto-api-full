@@ -11,15 +11,6 @@ const {
 
 router.get('/', getUsers);
 router.get('/me', getNowUser);
-router.get(
-  '/:id',
-  celebrate({
-    params: {
-      id: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
-    },
-  }),
-  getUser,
-);
 router.patch(
   '/me',
   celebrate({
@@ -40,6 +31,15 @@ router.patch(
     }),
   }),
   editAvatar,
+);
+router.get(
+  '/:id',
+  celebrate({
+    params: {
+      id: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+    },
+  }),
+  getUser,
 );
 
 module.exports = router;
